@@ -1,0 +1,1666 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 21 - Legend Of Donald Ducks</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    overflow:hidden;
+    background:#07111a;
+    color:white;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+canvas{
+    display:block;
+    width:100vw;
+    height:100vh;
+    background:#102a18;
+}
+
+#hud{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+}
+
+.panel{
+    background:rgba(5,12,20,.88);
+    border:2px solid #e5b84b;
+    border-radius:12px;
+    box-shadow:0 0 20px rgba(0,0,0,.7);
+}
+
+#topBar{
+    position:absolute;
+    top:15px;
+    left:15px;
+    width:340px;
+    padding:12px;
+}
+
+#playerName{
+    font-size:20px;
+    font-weight:bold;
+    color:#ffd86b;
+}
+
+.stat{
+    margin-top:7px;
+}
+
+.bar{
+    height:14px;
+    border-radius:8px;
+    background:#222;
+    overflow:hidden;
+    border:1px solid #777;
+}
+
+.barFill{
+    height:100%;
+    transition:.2s;
+}
+
+.hp{background:#e43d3d;}
+.mp{background:#3d91e4;}
+.xp{background:#a96bea;}
+
+#questBox{
+    position:absolute;
+    top:15px;
+    right:15px;
+    width:330px;
+    padding:14px;
+}
+
+#questBox h3{
+    color:#ffd86b;
+    margin-bottom:7px;
+}
+
+#minimap{
+    position:absolute;
+    right:15px;
+    bottom:15px;
+    width:180px;
+    height:180px;
+    border-radius:50%;
+    border:3px solid #e5b84b;
+    background:rgba(0,0,0,.65);
+}
+
+#controls{
+    position:absolute;
+    left:15px;
+    bottom:15px;
+    padding:10px;
+    font-size:13px;
+    opacity:.9;
+}
+
+#messages{
+    position:absolute;
+    left:50%;
+    transform:translateX(-50%);
+    bottom:25px;
+    width:min(700px,90vw);
+    text-align:center;
+}
+
+.message{
+    display:inline-block;
+    background:rgba(0,0,0,.8);
+    border:1px solid #e5b84b;
+    padding:10px 16px;
+    border-radius:8px;
+}
+
+#menu{
+    display:none;
+    position:absolute;
+    inset:0;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,.75);
+    pointer-events:auto;
+}
+
+.menuWindow{
+    width:min(900px,94vw);
+    max-height:88vh;
+    overflow:auto;
+    padding:20px;
+}
+
+.menuWindow h1{
+    color:#ffd86b;
+    margin-bottom:15px;
+}
+
+.tabs{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:15px;
+}
+
+button{
+    cursor:pointer;
+    border:1px solid #e5b84b;
+    background:#172738;
+    color:white;
+    padding:9px 13px;
+    border-radius:7px;
+}
+
+button:hover{
+    background:#314962;
+}
+
+.content{
+    line-height:1.5;
+}
+
+.item{
+    display:flex;
+    justify-content:space-between;
+    padding:10px;
+    margin:5px 0;
+    background:#101d29;
+    border-radius:7px;
+}
+
+.story{
+    white-space:pre-wrap;
+    line-height:1.65;
+    max-height:55vh;
+    overflow:auto;
+    padding:15px;
+    background:#0b1620;
+    border-radius:8px;
+}
+
+.skill{
+    margin:10px 0;
+    padding:12px;
+    border:1px solid #555;
+    border-radius:8px;
+}
+
+.skill.unlocked{
+    border-color:#67e88b;
+}
+
+#dialogue{
+    display:none;
+    position:absolute;
+    left:50%;
+    bottom:80px;
+    transform:translateX(-50%);
+    width:min(800px,92vw);
+    padding:18px;
+    pointer-events:auto;
+}
+
+#dialogueName{
+    color:#ffd86b;
+    font-size:19px;
+    margin-bottom:8px;
+}
+
+#combat{
+    display:none;
+    position:absolute;
+    inset:0;
+    align-items:center;
+    justify-content:center;
+    pointer-events:auto;
+    background:rgba(0,0,0,.35);
+}
+
+.combatWindow{
+    width:min(600px,92vw);
+    padding:20px;
+}
+
+.enemyTitle{
+    font-size:25px;
+    color:#ff7777;
+}
+
+.actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:15px;
+}
+
+#storyIntro{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(#07111a,#162a18);
+    z-index:20;
+    pointer-events:auto;
+}
+
+.introBox{
+    width:min(850px,92vw);
+    text-align:center;
+    padding:35px;
+}
+
+.introBox h1{
+    color:#ffd86b;
+    font-size:clamp(28px,5vw,55px);
+}
+
+.introBox h2{
+    margin:15px 0;
+}
+
+.introBox p{
+    color:#ccc;
+    margin:12px;
+}
+
+.legend{
+    color:#8fe5ff;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="game"></canvas>
+
+<div id="storyIntro">
+    <div class="introBox panel">
+        <h1>Chapter 21</h1>
+        <h2>Legend Of Donald Ducks</h2>
+        <p class="legend">Bedtime Stories — February 23 2020</p>
+        <p>Written by Edwin Mount Rica Tomez And “The Rages Band”</p>
+        <br>
+        <button onclick="startGame()">START GAME</button>
+    </div>
+</div>
+
+<div id="hud">
+
+    <div id="topBar" class="panel">
+        <div id="playerName">Mc Do — Farmer</div>
+        <div>Level <span id="level">1</span> | XP <span id="xpText">0/100</span></div>
+
+        <div class="stat">Health</div>
+        <div class="bar">
+            <div id="hpBar" class="barFill hp" style="width:100%"></div>
+        </div>
+
+        <div class="stat">Mana</div>
+        <div class="bar">
+            <div id="mpBar" class="barFill mp" style="width:100%"></div>
+        </div>
+
+        <div class="stat">Experience</div>
+        <div class="bar">
+            <div id="xpBar" class="barFill xp" style="width:0%"></div>
+        </div>
+
+        <div style="margin-top:7px">
+            Class: <span id="classText">Farmer</span>
+        </div>
+    </div>
+
+    <div id="questBox" class="panel">
+        <h3>QUEST</h3>
+        <div id="questText">
+            Explore Sheriff Farmers and find Donald Duck.
+        </div>
+    </div>
+
+    <canvas id="minimap" width="180" height="180"></canvas>
+
+    <div id="controls" class="panel">
+        <b>CONTROLS</b><br>
+        W A S D — Move<br>
+        Mouse — Look / Aim<br>
+        E — Interact<br>
+        F — Attack<br>
+        Q — Quest Menu<br>
+        I — Inventory<br>
+        K — Skills<br>
+        M — Map<br>
+        ESC — Close Menu
+    </div>
+
+    <div id="messages"></div>
+
+    <div id="dialogue" class="panel">
+        <div id="dialogueName"></div>
+        <div id="dialogueText"></div>
+        <br>
+        <button onclick="closeDialogue()">Continue</button>
+    </div>
+
+    <div id="combat">
+        <div class="combatWindow panel">
+            <div class="enemyTitle" id="enemyName">Enemy</div>
+            <div id="enemyStats"></div>
+            <hr style="margin:12px 0">
+            <div id="combatLog">Battle started!</div>
+            <div class="actions">
+                <button onclick="playerAttack()">⚔ Attack</button>
+                <button onclick="playerSkill()">✨ Skill</button>
+                <button onclick="useFood()">🍗 Eat Food</button>
+                <button onclick="runAway()">🏃 Run</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="menu">
+        <div class="menuWindow panel">
+            <h1 id="menuTitle">Game Menu</h1>
+
+            <div class="tabs">
+                <button onclick="showMenu('inventory')">Inventory</button>
+                <button onclick="showMenu('skills')">Skills</button>
+                <button onclick="showMenu('quests')">Quests</button>
+                <button onclick="showMenu('story')">Story</button>
+                <button onclick="showMenu('stats')">Stats</button>
+                <button onclick="closeMenu()">Close</button>
+            </div>
+
+            <div id="menuContent" class="content"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ============================================================
+   CHAPTER 21 - LEGEND OF DONALD DUCKS
+   COMPLETE HTML / CSS / JAVASCRIPT RPG
+   ============================================================ */
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const mini = document.getElementById("minimap");
+const mctx = mini.getContext("2d");
+
+function resize(){
+    canvas.width = innerWidth;
+    canvas.height = innerHeight;
+}
+addEventListener("resize",resize);
+resize();
+
+/* =========================
+   PLAYER
+========================= */
+
+const player = {
+    x:0,
+    y:0,
+    z:0,
+    angle:0,
+    level:1,
+    xp:0,
+    nextXP:100,
+
+    hp:100,
+    maxHp:100,
+
+    mp:60,
+    maxMp:60,
+
+    strength:10,
+    defense:6,
+    creativity:5,
+
+    class:"Farmer",
+
+    inventory:[
+        {name:"Bread",type:"food",amount:3,heal:20},
+        {name:"Fried Chicken",type:"food",amount:1,heal:35},
+        {name:"Farmer's Hoe",type:"weapon",amount:1,damage:12},
+        {name:"Magic Seed",type:"quest",amount:1}
+    ],
+
+    equipment:{
+        weapon:"Farmer's Hoe",
+        armor:"Farmer Clothes"
+    },
+
+    skills:{
+        farming:false,
+        powerfulStrike:false,
+        duckKnowledge:false,
+        karmaShield:false
+    }
+};
+
+/* =========================
+   WORLD
+========================= */
+
+const world = {
+    width:2400,
+    height:1800
+};
+
+const npcs = [
+    {
+        id:"farmer",
+        name:"Mc Do",
+        x:400,
+        y:500,
+        color:"#f2c27b",
+        dialogue:"I am Mc Do, the old farmer. I learned business and farming. Now I must care for my animals."
+    },
+    {
+        id:"donald",
+        name:"Donald Duck",
+        x:1050,
+        y:650,
+        color:"#fff36b",
+        dialogue:"Why are you following me?"
+    },
+    {
+        id:"wizard",
+        name:"Duka Duks",
+        x:1750,
+        y:1050,
+        color:"#bb74ff",
+        dialogue:"You must face the consequence of what you did to the ducks."
+    },
+    {
+        id:"duckling",
+        name:"Adult Duck",
+        x:1200,
+        y:720,
+        color:"#eeeeee",
+        dialogue:"Please don't leave us hungry."
+    }
+];
+
+const enemies = [
+    {
+        id:"wildDuck",
+        name:"Hungry Duck",
+        x:900,
+        y:950,
+        hp:35,
+        maxHp:35,
+        damage:7,
+        xp:30,
+        color:"#e5e5e5"
+    },
+    {
+        id:"farmerBandit",
+        name:"Restaurant Bandit",
+        x:700,
+        y:1200,
+        hp:50,
+        maxHp:50,
+        damage:10,
+        xp:45,
+        color:"#8b6847"
+    },
+    {
+        id:"karmaDuck",
+        name:"Karma Duck",
+        x:1500,
+        y:500,
+        hp:75,
+        maxHp:75,
+        damage:14,
+        xp:80,
+        color:"#ffb400"
+    }
+];
+
+const boss = {
+    id:"dukaBoss",
+    name:"Duka Duks — Karma Wizard",
+    x:1850,
+    y:1150,
+    hp:250,
+    maxHp:250,
+    damage:25,
+    xp:500,
+    color:"#9b55ff"
+};
+
+let activeEnemy = null;
+
+/* =========================
+   QUEST SYSTEM
+========================= */
+
+const quests = [
+    {
+        id:1,
+        name:"The Old Farmer",
+        description:"Talk to Mc Do in Sheriff Farmers.",
+        complete:false,
+        reward:50
+    },
+    {
+        id:2,
+        name:"Find Donald Duck",
+        description:"Find Donald Duck near the farm.",
+        complete:false,
+        reward:75
+    },
+    {
+        id:3,
+        name:"The Hungry Ducks",
+        description:"Investigate the ducks and discover what happened.",
+        complete:false,
+        reward:100
+    },
+    {
+        id:4,
+        name:"Duka Duks",
+        description:"Find the wizard who knows the truth.",
+        complete:false,
+        reward:150
+    },
+    {
+        id:5,
+        name:"Legend Of Donald Ducks",
+        description:"Defeat Duka Duks and finish the legendary story.",
+        complete:false,
+        reward:500
+    }
+];
+
+let currentQuest = 1;
+
+/* =========================
+   INPUT
+========================= */
+
+const keys = {};
+
+addEventListener("keydown",e=>{
+    keys[e.key.toLowerCase()] = true;
+
+    if(e.key.toLowerCase()==="i") showMenu("inventory");
+    if(e.key.toLowerCase()==="k") showMenu("skills");
+    if(e.key.toLowerCase()==="q") showMenu("quests");
+    if(e.key.toLowerCase()==="m") showMenu("story");
+    if(e.key==="Escape"){
+        closeMenu();
+        closeDialogue();
+    }
+
+    if(e.key.toLowerCase()==="e"){
+        interact();
+    }
+
+    if(e.key.toLowerCase()==="f"){
+        attackNearby();
+    }
+});
+
+addEventListener("keyup",e=>{
+    keys[e.key.toLowerCase()] = false;
+});
+
+canvas.addEventListener("mousemove",e=>{
+    player.angle = Math.atan2(
+        e.clientY-canvas.height/2,
+        e.clientX-canvas.width/2
+    );
+});
+
+/* =========================
+   GAME STATE
+========================= */
+
+let started = false;
+let gameTime = 0;
+
+function startGame(){
+    document.getElementById("storyIntro").style.display="none";
+    started=true;
+
+    player.x=400;
+    player.y=500;
+
+    showMessage("Welcome to Sheriff Farmers. Your legend begins.");
+}
+
+function showMessage(text){
+    const box=document.getElementById("messages");
+
+    box.innerHTML=`<div class="message">${text}</div>`;
+
+    setTimeout(()=>{
+        box.innerHTML="";
+    },3500);
+}
+
+/* =========================
+   MOVEMENT
+========================= */
+
+function update(dt){
+
+    if(!started || activeEnemy) return;
+
+    let speed=180;
+
+    if(keys["shift"]) speed=280;
+
+    let dx=0;
+    let dy=0;
+
+    if(keys["w"]) dy-=1;
+    if(keys["s"]) dy+=1;
+    if(keys["a"]) dx-=1;
+    if(keys["d"]) dx+=1;
+
+    if(dx!==0 || dy!==0){
+        const len=Math.hypot(dx,dy);
+        dx/=len;
+        dy/=len;
+
+        player.x += dx*speed*dt;
+        player.y += dy*speed*dt;
+    }
+
+    player.x=Math.max(50,Math.min(world.width-50,player.x));
+    player.y=Math.max(50,Math.min(world.height-50,player.y));
+
+    gameTime+=dt;
+}
+
+/* =========================
+   INTERACTION
+========================= */
+
+function distance(a,b){
+    return Math.hypot(a.x-b.x,a.y-b.y);
+}
+
+function interact(){
+
+    let closest=null;
+    let best=120;
+
+    npcs.forEach(n=>{
+        const d=distance(player,n);
+        if(d<best){
+            best=d;
+            closest=n;
+        }
+    });
+
+    if(!closest){
+        showMessage("There is nothing nearby to interact with.");
+        return;
+    }
+
+    talkTo(closest);
+}
+
+function talkTo(npc){
+
+    document.getElementById("dialogue").style.display="block";
+    document.getElementById("dialogueName").textContent=npc.name;
+    document.getElementById("dialogueText").textContent=npc.dialogue;
+
+    if(npc.id==="farmer"){
+        completeQuest(1);
+        currentQuest=2;
+        document.getElementById("questText").textContent=
+            "Find Donald Duck near the farm.";
+    }
+
+    if(npc.id==="donald"){
+        completeQuest(2);
+        currentQuest=3;
+        document.getElementById("questText").textContent=
+            "Investigate the hungry ducks.";
+        showMessage("Donald Duck's behavior seems suspicious.");
+    }
+
+    if(npc.id==="duckling"){
+        completeQuest(3);
+        currentQuest=4;
+        document.getElementById("questText").textContent=
+            "Find the wizard Duka Duks.";
+    }
+
+    if(npc.id==="wizard"){
+        completeQuest(4);
+        currentQuest=5;
+        document.getElementById("questText").textContent=
+            "Defeat Duka Duks — Karma Wizard.";
+    }
+}
+
+function closeDialogue(){
+    document.getElementById("dialogue").style.display="none";
+}
+
+/* =========================
+   QUEST COMPLETION
+========================= */
+
+function completeQuest(id){
+
+    const q=quests.find(x=>x.id===id);
+
+    if(!q || q.complete) return;
+
+    q.complete=true;
+
+    gainXP(q.reward);
+
+    showMessage(
+        `Quest Complete: ${q.name} +${q.reward} XP`
+    );
+}
+
+/* =========================
+   COMBAT
+========================= */
+
+function attackNearby(){
+
+    let target=null;
+    let best=170;
+
+    [...enemies,boss].forEach(e=>{
+        if(e.hp<=0) return;
+
+        const d=distance(player,e);
+
+        if(d<best){
+            best=d;
+            target=e;
+        }
+    });
+
+    if(!target){
+        showMessage("No enemy nearby.");
+        return;
+    }
+
+    startCombat(target);
+}
+
+function startCombat(enemy){
+
+    activeEnemy=enemy;
+
+    document.getElementById("combat").style.display="flex";
+
+    updateCombatUI();
+
+    document.getElementById("combatLog").textContent=
+        `${enemy.name} challenges you!`;
+}
+
+function updateCombatUI(){
+
+    if(!activeEnemy) return;
+
+    document.getElementById("enemyName").textContent=
+        activeEnemy.name;
+
+    document.getElementById("enemyStats").innerHTML=
+        `HP: ${Math.max(0,activeEnemy.hp)} / ${activeEnemy.maxHp}`;
+}
+
+function playerAttack(){
+
+    if(!activeEnemy) return;
+
+    let damage=player.strength+12;
+
+    if(player.skills.powerfulStrike)
+        damage+=15;
+
+    activeEnemy.hp-=damage;
+
+    document.getElementById("combatLog").textContent=
+        `You dealt ${damage} damage!`;
+
+    if(activeEnemy.hp<=0){
+        winCombat();
+        return;
+    }
+
+    enemyTurn();
+}
+
+function playerSkill(){
+
+    if(!activeEnemy) return;
+
+    if(player.mp<15){
+        document.getElementById("combatLog").textContent=
+            "Not enough mana!";
+        return;
+    }
+
+    player.mp-=15;
+
+    let damage=30+player.creativity*2;
+
+    activeEnemy.hp-=damage;
+
+    document.getElementById("combatLog").textContent=
+        `Legendary skill dealt ${damage} damage!`;
+
+    if(activeEnemy.hp<=0){
+        winCombat();
+        return;
+    }
+
+    enemyTurn();
+}
+
+function useFood(){
+
+    const food=player.inventory.find(
+        x=>x.type==="food" && x.amount>0
+    );
+
+    if(!food){
+        document.getElementById("combatLog").textContent=
+            "No food available.";
+        return;
+    }
+
+    food.amount--;
+
+    player.hp=Math.min(
+        player.maxHp,
+        player.hp+food.heal
+    );
+
+    document.getElementById("combatLog").textContent=
+        `You ate ${food.name} and recovered ${food.heal} HP.`;
+
+    enemyTurn();
+}
+
+function enemyTurn(){
+
+    if(!activeEnemy) return;
+
+    let damage=activeEnemy.damage-player.defense/2;
+
+    if(player.skills.karmaShield)
+        damage*=.7;
+
+    damage=Math.max(1,Math.floor(damage));
+
+    player.hp-=damage;
+
+    updateHUD();
+
+    if(player.hp<=0){
+        player.hp=player.maxHp;
+        player.mp=player.maxMp;
+
+        document.getElementById("combatLog").textContent=
+            "You were defeated. You returned to the farm.";
+
+        player.x=400;
+        player.y=500;
+
+        setTimeout(()=>{
+            activeEnemy=null;
+            document.getElementById("combat").style.display="none";
+        },1200);
+
+        return;
+    }
+
+    document.getElementById("combatLog").textContent+=
+        ` Enemy dealt ${damage} damage.`;
+
+    updateCombatUI();
+}
+
+function runAway(){
+
+    if(!activeEnemy) return;
+
+    activeEnemy=null;
+    document.getElementById("combat").style.display="none";
+
+    showMessage("You escaped from battle.");
+}
+
+function winCombat(){
+
+    const defeated=activeEnemy;
+
+    const reward=defeated.xp;
+
+    gainXP(reward);
+
+    if(defeated===boss){
+        completeQuest(5);
+
+        showMessage(
+            "Duka Duks has been defeated! LEGEND OF DONALD DUCKS COMPLETE!"
+        );
+
+        document.getElementById("questText").textContent=
+            "STORY COMPLETE — Legend Of Donald Ducks";
+
+        player.inventory.push({
+            name:"Legendary Duck Feather",
+            type:"quest",
+            amount:1
+        });
+    }else{
+        showMessage(
+            `${defeated.name} defeated! +${reward} XP`
+        );
+    }
+
+    defeated.hp=0;
+
+    activeEnemy=null;
+
+    document.getElementById("combat").style.display="none";
+
+    updateHUD();
+}
+
+/* =========================
+   EXPERIENCE / LEVELING
+========================= */
+
+function gainXP(amount){
+
+    player.xp+=amount;
+
+    while(player.xp>=player.nextXP){
+
+        player.xp-=player.nextXP;
+
+        player.level++;
+
+        player.nextXP=
+            Math.floor(player.nextXP*1.35);
+
+        player.maxHp+=15;
+        player.maxMp+=8;
+
+        player.hp=player.maxHp;
+        player.mp=player.maxMp;
+
+        player.strength+=3;
+        player.defense+=2;
+
+        showMessage(
+            `LEVEL UP! You are now Level ${player.level}!`
+        );
+    }
+
+    updateHUD();
+}
+
+/* =========================
+   SKILL TREE
+========================= */
+
+function unlockSkill(skill){
+
+    const costs={
+        farming:1,
+        powerfulStrike:2,
+        duckKnowledge:2,
+        karmaShield:3
+    };
+
+    if(player.skills[skill]){
+        showMessage("Skill already unlocked.");
+        return;
+    }
+
+    const cost=costs[skill];
+
+    if(player.level<cost+1){
+        showMessage(
+            `You need Level ${cost+1}.`
+        );
+        return;
+    }
+
+    player.skills[skill]=true;
+
+    showMessage(
+        `Skill unlocked: ${skill}`
+    );
+
+    showMenu("skills");
+}
+
+/* =========================
+   MENU
+========================= */
+
+function showMenu(type){
+
+    document.getElementById("menu").style.display="flex";
+
+    const content=document.getElementById("menuContent");
+
+    if(type==="inventory"){
+
+        document.getElementById("menuTitle").textContent=
+            "Inventory & Equipment";
+
+        content.innerHTML=`
+
+            <h3>Equipment</h3>
+
+            <div class="item">
+                <span>Weapon</span>
+                <b>${player.equipment.weapon}</b>
+            </div>
+
+            <div class="item">
+                <span>Armor</span>
+                <b>${player.equipment.armor}</b>
+            </div>
+
+            <h3 style="margin-top:15px">Inventory</h3>
+
+            ${player.inventory.map(item=>`
+                <div class="item">
+                    <span>${item.name}</span>
+                    <b>x${item.amount}</b>
+                </div>
+            `).join("")}
+        `;
+    }
+
+    if(type==="skills"){
+
+        document.getElementById("menuTitle").textContent=
+            "Progression & Skill Tree";
+
+        content.innerHTML=`
+
+            <p>Level: ${player.level}</p>
+
+            <div class="skill ${player.skills.farming?'unlocked':''}">
+                🌾 <b>Advanced Farming</b>
+                <p>Improves farming-related abilities.</p>
+                <button onclick="unlockSkill('farming')">
+                    Unlock
+                </button>
+            </div>
+
+            <div class="skill ${player.skills.powerfulStrike?'unlocked':''}">
+                ⚔ <b>Powerful Strike</b>
+                <p>Increases normal attack damage.</p>
+                <button onclick="unlockSkill('powerfulStrike')">
+                    Unlock
+                </button>
+            </div>
+
+            <div class="skill ${player.skills.duckKnowledge?'unlocked':''}">
+                🦆 <b>Duck Knowledge</b>
+                <p>Improves understanding of duck enemies.</p>
+                <button onclick="unlockSkill('duckKnowledge')">
+                    Unlock
+                </button>
+            </div>
+
+            <div class="skill ${player.skills.karmaShield?'unlocked':''}">
+                🛡 <b>Karma Shield</b>
+                <p>Reduces incoming combat damage.</p>
+                <button onclick="unlockSkill('karmaShield')">
+                    Unlock
+                </button>
+            </div>
+        `;
+    }
+
+    if(type==="quests"){
+
+        document.getElementById("menuTitle").textContent=
+            "Quest Journal";
+
+        content.innerHTML=quests.map(q=>`
+
+            <div class="item">
+                <div>
+                    <b>${q.name}</b>
+                    <br>
+                    ${q.description}
+                </div>
+
+                <div>
+                    ${q.complete
+                        ?"✅ COMPLETE"
+                        :"⬜ ACTIVE"}
+                </div>
+            </div>
+
+        `).join("");
+    }
+
+    if(type==="stats"){
+
+        document.getElementById("menuTitle").textContent=
+            "Player Statistics";
+
+        content.innerHTML=`
+
+            <div class="item">
+                <span>Level</span>
+                <b>${player.level}</b>
+            </div>
+
+            <div class="item">
+                <span>Class</span>
+                <b>${player.class}</b>
+            </div>
+
+            <div class="item">
+                <span>Strength</span>
+                <b>${player.strength}</b>
+            </div>
+
+            <div class="item">
+                <span>Defense</span>
+                <b>${player.defense}</b>
+            </div>
+
+            <div class="item">
+                <span>Creativity</span>
+                <b>${player.creativity}</b>
+            </div>
+
+            <div class="item">
+                <span>Health</span>
+                <b>${player.hp}/${player.maxHp}</b>
+            </div>
+
+            <div class="item">
+                <span>Mana</span>
+                <b>${player.mp}/${player.maxMp}</b>
+            </div>
+        `;
+    }
+
+    if(type==="story"){
+
+        document.getElementById("menuTitle").textContent=
+            "Chapter 21 — Legend Of Donald Ducks";
+
+        content.innerHTML=`
+
+        <div class="story">${storyText}
+
+        <br><br>
+
+        <b>Moral Lesson:</b>
+        Don't be selfish and cruel, As a parent you must feed them.
+        Or else you will face the consequence to punish to that no one
+        will cares you. Care is good karma and selfish is bad karma.
+        </div>
+        `;
+    }
+}
+
+function closeMenu(){
+    document.getElementById("menu").style.display="none";
+}
+
+/* =========================
+   HUD
+========================= */
+
+function updateHUD(){
+
+    document.getElementById("level").textContent=
+        player.level;
+
+    document.getElementById("xpText").textContent=
+        `${player.xp}/${player.nextXP}`;
+
+    document.getElementById("hpBar").style.width=
+        `${Math.max(0,player.hp/player.maxHp*100)}%`;
+
+    document.getElementById("mpBar").style.width=
+        `${Math.max(0,player.mp/player.maxMp*100)}%`;
+
+    document.getElementById("xpBar").style.width=
+        `${player.xp/player.nextXP*100}%`;
+
+    document.getElementById("classText").textContent=
+        player.class;
+}
+
+/* =========================
+   RENDER WORLD
+========================= */
+
+function draw(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    const cameraX=
+        player.x-canvas.width/2;
+
+    const cameraY=
+        player.y-canvas.height/2;
+
+    /* sky */
+
+    ctx.fillStyle="#78bde0";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    /* ground */
+
+    ctx.fillStyle="#4f873d";
+    ctx.fillRect(
+        -cameraX,
+        -cameraY,
+        world.width,
+        world.height
+    );
+
+    /* farm zones */
+
+    drawZone(
+        100,100,600,500,
+        "#658c42",
+        "SHERIFF FARMERS"
+    );
+
+    drawZone(
+        800,300,650,600,
+        "#6c9a48",
+        "DUCK FARM"
+    );
+
+    drawZone(
+        1500,800,650,600,
+        "#496c8f",
+        "WIZARD LAND"
+    );
+
+    /* paths */
+
+    ctx.fillStyle="#b99a62";
+
+    ctx.fillRect(
+        -cameraX,
+        620-cameraY,
+        world.width,
+        100
+    );
+
+    ctx.fillRect(
+        700-cameraX,
+        -cameraY,
+        100,
+        world.height
+    );
+
+    /* trees */
+
+    for(let x=80;x<world.width;x+=180){
+        for(let y=80;y<world.height;y+=210){
+
+            if((x+y)%3!==0) continue;
+
+            drawTree(
+                x-cameraX,
+                y-cameraY
+            );
+        }
+    }
+
+    /* NPCs */
+
+    npcs.forEach(n=>{
+        drawCharacter(
+            n.x-cameraX,
+            n.y-cameraY,
+            n.color,
+            n.name
+        );
+    });
+
+    /* enemies */
+
+    enemies.forEach(e=>{
+        if(e.hp>0){
+            drawEnemy(
+                e.x-cameraX,
+                e.y-cameraY,
+                e.color,
+                e.name
+            );
+        }
+    });
+
+    /* boss */
+
+    if(boss.hp>0){
+        drawEnemy(
+            boss.x-cameraX,
+            boss.y-cameraY,
+            boss.color,
+            boss.name
+        );
+    }
+
+    /* player */
+
+    drawPlayer(
+        canvas.width/2,
+        canvas.height/2
+    );
+
+    drawMinimap();
+
+    updateHUD();
+}
+
+function drawZone(x,y,w,h,color,label){
+
+    const cameraX=player.x-canvas.width/2;
+    const cameraY=player.y-canvas.height/2;
+
+    ctx.fillStyle=color;
+
+    ctx.globalAlpha=.35;
+
+    ctx.fillRect(
+        x-cameraX,
+        y-cameraY,
+        w,
+        h
+    );
+
+    ctx.globalAlpha=1;
+
+    ctx.fillStyle="rgba(255,255,255,.8)";
+    ctx.font="bold 20px Arial";
+
+    ctx.fillText(
+        label,
+        x-cameraX+20,
+        y-cameraY+35
+    );
+}
+
+function drawTree(x,y){
+
+    ctx.fillStyle="#56351e";
+    ctx.fillRect(x-8,y,16,40);
+
+    ctx.fillStyle="#1e592b";
+
+    ctx.beginPath();
+    ctx.arc(x,y,32,0,Math.PI*2);
+    ctx.fill();
+}
+
+function drawCharacter(x,y,color,name){
+
+    ctx.fillStyle="rgba(0,0,0,.25)";
+    ctx.beginPath();
+    ctx.ellipse(x,y+20,22,8,0,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle=color;
+
+    ctx.beginPath();
+    ctx.arc(x,y-5,17,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle="#222";
+    ctx.font="12px Arial";
+    ctx.textAlign="center";
+    ctx.fillText(name,x,y-30);
+    ctx.textAlign="left";
+}
+
+function drawEnemy(x,y,color,name){
+
+    ctx.fillStyle="rgba(0,0,0,.3)";
+    ctx.beginPath();
+    ctx.ellipse(x,y+25,27,9,0,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle=color;
+
+    ctx.beginPath();
+    ctx.arc(x,y,23,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle="#111";
+    ctx.font="12px Arial";
+    ctx.textAlign="center";
+    ctx.fillText(name,x,y-32);
+    ctx.textAlign="left";
+}
+
+function drawPlayer(x,y){
+
+    ctx.save();
+
+    ctx.translate(x,y);
+    ctx.rotate(player.angle);
+
+    ctx.fillStyle="rgba(0,0,0,.3)";
+    ctx.beginPath();
+    ctx.ellipse(0,22,25,9,0,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle="#d8a15a";
+    ctx.fillRect(-17,-10,34,35);
+
+    ctx.fillStyle="#f0c49a";
+    ctx.beginPath();
+    ctx.arc(0,-23,15,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle="#3b2416";
+    ctx.fillRect(-18,-38,36,7);
+
+    ctx.fillStyle="#e5b84b";
+    ctx.fillRect(12,-3,28,5);
+
+    ctx.restore();
+}
+
+/* =========================
+   MINIMAP
+========================= */
+
+function drawMinimap(){
+
+    mctx.clearRect(0,0,180,180);
+
+    mctx.fillStyle="#1c3922";
+    mctx.fillRect(0,0,180,180);
+
+    const scaleX=180/world.width;
+    const scaleY=180/world.height;
+
+    /* zones */
+
+    mctx.fillStyle="#6c9a48";
+    mctx.fillRect(
+        100*scaleX,
+        100*scaleY,
+        600*scaleX,
+        500*scaleY
+    );
+
+    mctx.fillStyle="#496c8f";
+    mctx.fillRect(
+        1500*scaleX,
+        800*scaleY,
+        650*scaleX,
+        600*scaleY
+    );
+
+    /* player */
+
+    mctx.fillStyle="#ffffff";
+    mctx.beginPath();
+
+    mctx.arc(
+        player.x*scaleX,
+        player.y*scaleY,
+        5,
+        0,
+        Math.PI*2
+    );
+
+    mctx.fill();
+
+    /* NPCs */
+
+    npcs.forEach(n=>{
+        mctx.fillStyle="#ffd84d";
+
+        mctx.beginPath();
+
+        mctx.arc(
+            n.x*scaleX,
+            n.y*scaleY,
+            3,
+            0,
+            Math.PI*2
+        );
+
+        mctx.fill();
+    });
+
+    /* enemies */
+
+    [...enemies,boss].forEach(e=>{
+
+        if(e.hp<=0) return;
+
+        mctx.fillStyle="#ff5555";
+
+        mctx.beginPath();
+
+        mctx.arc(
+            e.x*scaleX,
+            e.y*scaleY,
+            3,
+            0,
+            Math.PI*2
+        );
+
+        mctx.fill();
+    });
+}
+
+/* =========================
+   ORIGINAL STORY
+========================= */
+
+const storyText = `Chapter 21:Bedtime Stories
+February 23 2020
+
+Legend Of Donald Ducks
+
+Written by Edwin Mount Rica Tomez And “The Rages Band”
+
+Once upon a time near the town of the Sheriff Farmers. 3 days ago the old farmer man named Mc Do. And he is all known to the business practice in creating his commercialized products in business of his own restaurant called “Mc Donalds”. What means the expertise he wanted to sell is the fried chicken. Which been eaten by the customers around. But in the age of 40 years old. He already reached 40 Million Dollars in every 10 years. Since he was in the age of 30 the money in investment should be multiplied by 4 Million Dollars for 10 years. That’s why he reached 40 million dollars in every 12 months just for investment. But the sudden change happen. With the savings of 40 Million Dollars spent by Mc Do. He want to buy a duck in the pet market. And make to sure he needs to feed the duck namely Donald duck. After Mc Do buy the the duck name Donald duck. He put it in the land in near Sheriff Farmers. Which Mc Do learns farming and farming. So at the age of 70-100 he can reached 40 Decillion Dollars. If he take good in farming. Then 2 days ago the pet duck named Donald duck is going to became pregnant. Then in 20-30 years the baby ducks became now an adult. As the farmer already known it in 30 years. The age of a farmer now is already 70 years old. As it computed the age sum up his past 40 years in Mc Donalds business restaurant. The farmer learned and never forget on how to feed Donald Duck and his ducks too. Then after Mc Do the farmer feed them. He goes now in the Sheriff Farmers to take a sleep because of tired farming job. Then Donald Duck said as she’s the mother. She wants to think stupid about her fellow adult ducks. Donald Duck said, You there from now on. My baby to adult ducks in the past. I will not taking care of you anymore. Because you know already at the age 30. You can care for yourself my ducks. Ducks said, You are so spoiled bratt mother Donald Duck. Why you ever do this like way. Donald Duck said, I don’t want you to feed in dinner by the farmer. Ducks said, No way but the bad karma will punish you the day will come. And when Donald Duck and Ducks said. The farmer came to feed but Donald Duck corner the ducks to destruct the eating of other ducks. The Mother duck which is Donald Duck killed the Ducks. Because of so much pride Donald Duck want to make the fellow ducks to become hungry and starve to die. As the farmer didn’t notice it but to feed the ducks under the water. Farmer is going to sleep again when the wizard came. Wizard namely Duka Duks. The person who needs to put in bad karma for the ducks and turns to legendary chicken to fried chicken. That’s called “Legend Of Donald Ducks”. And because of conscience on what’s happen to the ducks because it’s killed by Mother Donald Duck by hunger. Wizard Duka Duks revenge the faults happen to the ducks. And when Duka Duks saw the Donald Duck. Donald Duck said, Why you following me. Duka Duks said, You must face the consequence on what you did to your past baby ducklings. You tried to share feeding yourself than then. So be it I will toast you to duck. I will turned you to fried chicken. So that it will feed by the customers in Mc Donalds restaurant. Donald Duck said, No! I’m going to get out of here. And when suddenly Duka Duks tries to escape her. By the use of his magic want. He put the magic to Donald Duck and put it in the table of plate in Sheriff Farmer town. Which that’s the home of old man Farmer Mc Do. And when Duka Duks turn Donald Duck into the fried chicken. It brought already into dinner later then he disappeared. And when Mc Do wake up in this town of Sheriff. He saw the fried chicken and he said, Why there is a fried chicken in my house? Who deliver it. He didn’t also who deliver it then the thing he do. Is to sell the fried chicken into Mc Donalds restaurant. 7pm later the Mc Donalds restaurant is already open. The last fried chicken in dinner is already eaten by the last customer. As the story ends. The last customer eat it. The last customer said, Woah I like the chicken, thanks to Mc Donalds. I would like to introduce you that many will eat this. And make your business grown good. Mc Do said, well thank you. And when the customer finished eating then go home. After 1 year. He still make money and pure Decillion Dollars he save. Because the taste of food is so good and delicious. That’s why the Mc Donalds restaurant became history. As chicken is like a ducks. Because they’re both wingless birds.
+
+Moral Lesson: Don’t be selfish and cruel, As a parent you must feed them. Or else you will face the consequence to punish to that no one will cares you. Care is good karma and selfish is bad karma.`;
+
+/* =========================
+   GAME LOOP
+========================= */
+
+let lastTime=performance.now();
+
+function gameLoop(now){
+
+    const dt=Math.min(
+        .05,
+        (now-lastTime)/1000
+    );
+
+    lastTime=now;
+
+    update(dt);
+    draw();
+
+    requestAnimationFrame(gameLoop);
+}
+
+requestAnimationFrame(gameLoop);
+
+updateHUD();
+
+/* =========================
+   AUTO QUEST / WORLD EVENTS
+========================= */
+
+setInterval(()=>{
+
+    if(!started) return;
+
+    /* regenerate mana slowly */
+
+    if(!activeEnemy){
+
+        player.mp=Math.min(
+            player.maxMp,
+            player.mp+2
+        );
+    }
+
+    updateHUD();
+
+},1000);
+
+/* =========================
+   WELCOME EVENT
+========================= */
+
+setTimeout(()=>{
+
+    if(started){
+        showMessage(
+            "Explore the 3D-style Sheriff Farmers world. Press E near characters."
+        );
+    }
+
+},5000);
+
+</script>
+
+</body>
+</html>
+```
